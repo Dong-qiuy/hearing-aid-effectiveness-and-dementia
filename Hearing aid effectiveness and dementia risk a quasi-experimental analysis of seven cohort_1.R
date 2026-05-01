@@ -24,7 +24,9 @@ weight<-function(data){
   data$hearing_loss_aids_c5<-as.factor(data$hearing_loss_aids_c5)
   data$hearing_aids_c2<-as.factor(data$hearing_aids_c2)
   fit<-glm(hearing_aids_c2~age_wave1+sex_wave1+education_wave1+marital_status_wave1+smoke_wave1+
-             drink_wave1+pa_wave1+diabetes_wave1+hypertension_wave1+cvd_wave1,data=data, 
+           drink_wave1+pa_wave1+diabetes_wave1+hypertension_wave1+cvd_wave1+income_c3_wave1+
+           orientation_time_wave1_c2+memory_wave1_c2+excutive_function_wave1_c2+sdi_wave1+
+           insurance_wave1+emotion_support_wave1,data=data, 
            family = binomial(link = "logit"))
   
   data$ps<-predict(fit,type = "response")
@@ -34,27 +36,22 @@ weight<-function(data){
                family = "multinomial",
                numerator = ~1,
                denominator = ~age_wave1+sex_wave1+education_wave1+marital_status_wave1+smoke_wave1+
-                 drink_wave1+pa_wave1+diabetes_wave1+hypertension_wave1+cvd_wave1,
+               drink_wave1+pa_wave1+diabetes_wave1+hypertension_wave1+cvd_wave1+income_c3_wave1+
+               orientation_time_wave1_c2+memory_wave1_c2+excutive_function_wave1_c2+ADL_wave1+sdi_wave1+
+               insurance_wave1+emotion_support_wave1,
                data = data)
   data$w1<-w1$ipw.weights
   return(data)
 }
 all<-lapply(all, weight)
 
-
-#########eastern asia
-asia<-subset(all, cohort %in% c(4,5))
-#########europe
-europe<-subset(all, cohort %in% c(1,2,3))
-#########north america
-america<-subset(all, cohort %in% c(6,7))
 ########high-income countries
 high_income<-subset(all, cohort %in% c(1,2,3,5,6))
 ########middle-income countries
 middle_income<-subset(all, cohort %in% c(4,7))
 
-data_list<-setNames(list(all,asia,europe,america,high_income,middle_income),
-                    c("all","asia","europe","america","high_income","middle_income"))
+data_list<-setNames(list(all,high_income,middle_income),
+                    c("all","high_income","middle_income"))
 
 ###########primary analysis
 library(coxme)
@@ -121,9 +118,9 @@ for (i in seq_along(data_list)) {
 }
 result<-do.call(bind_rows,result_list)
 
-###########sensitivity analysis (five years after baseline)
+###########sensitivity analysis (three years after baseline)
 analysis<-function(data,data_name){
-  data<-subset(data,follow_year>=5)
+  data<-subset(data,follow_year>=3)
   fit<-coxme(Surv(follow_year,dementia_final)~hearing_aids_c2+(1|cohort),data=data,weights = w)
   a<-data.frame(hr=exp(coef(fit)),
                 cilower=exp(confint(fit))[1],
@@ -168,19 +165,14 @@ load("TILDA_final_data(transient dementia).RDATA")
 data_list<-list(elsa,share,TILDA,charls,klosa,hrs,MHAS)
 all<-do.call(bind_rows,data_list)
 all<-lapply(all, weight)
-#########eastern asia
-asia<-subset(all, cohort %in% c(4,5))
-#########europe
-europe<-subset(all, cohort %in% c(1,2,3))
-#########north america
-america<-subset(all, cohort %in% c(6,7))
+
 ########high-income countries
 high_income<-subset(all, cohort %in% c(1,2,3,5,6))
 ########middle-income countries
 middle_income<-subset(all, cohort %in% c(4,7))
 
-data_list<-setNames(list(all,asia,europe,america,high_income,middle_income),
-                    c("all","asia","europe","america","high_income","middle_income"))
+data_list<-setNames(list(all,high_income,middle_income),
+                    c("all","high_income","middle_income"))
 
 result_list<-list()
 for (i in seq_along(data_list)) {
@@ -189,7 +181,7 @@ for (i in seq_along(data_list)) {
 }
 result<-do.call(bind_rows,result_list)
 
-#######################sensitivity analysis 3 (at least 3 waves)
+#######################sensitivity analysis 3 (at least 2 follow-up waves)
 rm(list = ls())
 load("hrs_final_data(3 waves).RDATA")
 load("MHAS_final_data(3 waves).RDATA")
@@ -203,19 +195,14 @@ load("TILDA_final_data(3 waves).RDATA")
 data_list<-list(elsa,share,TILDA,charls,klosa,hrs,MHAS)
 all<-do.call(bind_rows,data_list)
 all<-lapply(all, weight)
-#########eastern asia
-asia<-subset(all, cohort %in% c(4,5))
-#########europe
-europe<-subset(all, cohort %in% c(1,2,3))
-#########north america
-america<-subset(all, cohort %in% c(6,7))
+
 ########high-income countries
 high_income<-subset(all, cohort %in% c(1,2,3,5,6))
 ########middle-income countries
 middle_income<-subset(all, cohort %in% c(4,7))
 
-data_list<-setNames(list(all,asia,europe,america,high_income,middle_income),
-                    c("all","asia","europe","america","high_income","middle_income"))
+data_list<-setNames(list(all,high_income,middle_income),
+                    c("all","high_income","middle_income"))
 
 ###########
 result_list<-list()
@@ -313,19 +300,14 @@ load("TILDA_final_data_noimp.RDATA")
 data_list<-list(elsa,share,TILDA,charls,klosa,hrs,MHAS)
 all<-do.call(bind_rows,data_list)
 all<-lapply(all, weight)
-#########eastern asia
-asia<-subset(all, cohort %in% c(4,5))
-#########europe
-europe<-subset(all, cohort %in% c(1,2,3))
-#########north america
-america<-subset(all, cohort %in% c(6,7))
+
 ########high-income countries
 high_income<-subset(all, cohort %in% c(1,2,3,5,6))
 ########middle-income countries
 middle_income<-subset(all, cohort %in% c(4,7))
 
-data_list<-setNames(list(all,asia,europe,america,high_income,middle_income),
-                    c("all","asia","europe","america","high_income","middle_income"))
+data_list<-setNames(list(all,high_income,middle_income),
+                    c("all","high_income","middle_income"))
 
 
 result_list<-list()
